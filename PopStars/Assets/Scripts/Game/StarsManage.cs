@@ -19,13 +19,50 @@ public class StarsManage : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         instance = this;
-        InitStars();
+        ResetGame();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
 	}
+
+    public bool isOver = false;
+
+    void OnGUI()
+    {
+        
+        if (GUILayout.Button("Reset"))
+        {
+            ResetGame();
+        }
+        if (GUILayout.Button("CheckGameOver"))
+        {
+            isOver = CheckIsGameOver();
+        }
+        if (isOver)
+            GUILayout.TextArea("Game is OVer");
+        else
+            GUILayout.TextArea("Game is not OVer");
+    }
+
+    public void ResetGame()
+    {
+        for (int i = 0; i < MAX_ROW; i++)
+        {
+            for (int j = 0; j < MAX_COL; j++)
+            {
+                if (stars_list[i, j] != null)
+                {
+                    GameObject.Destroy(stars_list[i, j].gameObject);
+                    stars_list[i, j] = null;
+                }
+            }
+        }
+        stars_selected.Clear();
+
+        InitStars();
+    }
 
     BlockStar CreateStars(BlockStar.StarType type, int row, int col)
     {
@@ -52,7 +89,7 @@ public class StarsManage : MonoBehaviour {
 
     public BlockStar.StarType GenerateStarType()
     {
-        BlockStar.StarType st = (BlockStar.StarType)Random.Range((int)BlockStar.StarType.Star_Blue, (int)BlockStar.StarType.Star_Red);
+        BlockStar.StarType st = (BlockStar.StarType)Random.Range((int)BlockStar.StarType.Star_Blue, (int)BlockStar.StarType.Star_Red +1);
         return st;
     }
 
@@ -62,6 +99,7 @@ public class StarsManage : MonoBehaviour {
         ClearAllStarsSearchState();
         ClearAllSelectedStars();
         CheckSameStars(row,col,type);
+        SetAllSelectStarsState();
     }
 
     //查找临近的所有相同的星星,递归遍历
@@ -77,7 +115,7 @@ public class StarsManage : MonoBehaviour {
         //找到相同的星星类型，继续搜索
         if (stars_list[row, col]._type == type)
         {
-            stars_list[row, col].isSelect = true;
+            /*stars_list[row, col].isSelect = true;*/
             stars_selected.Add(stars_list[row, col]);
             //向左搜索
             CheckSameStars(row - 1, col,type);
@@ -102,6 +140,16 @@ public class StarsManage : MonoBehaviour {
             }
         }
     }
+
+    //设置所有的搜索到的星星为选中状态
+    void SetAllSelectStarsState()
+    {
+        for (int i = 0, imax = stars_selected.Count; i < imax; i++)
+        {
+            stars_selected[i].isSelect = true;
+        }
+    }
+
     //清除之前选中的星星的选中状态
     void ClearAllSelectedStars()
     {
@@ -116,7 +164,11 @@ public class StarsManage : MonoBehaviour {
     public void DestroyAllSelectStars()
     {
         if (stars_selected.Count <= 1) return;
-
+        StartCoroutine("BoomSelectStars");
+    }
+    //协程消除星星
+    IEnumerator BoomSelectStars()
+    {
         for (int i = 0, imax = stars_selected.Count; i < imax; i++)
         {
             BlockStar bs = stars_selected[i];
@@ -124,15 +176,31 @@ public class StarsManage : MonoBehaviour {
             int col = bs._col;
             stars_list[row, col] = null;
             bs.DestoryBoom();
+            if(i != imax -1)
+                yield return new WaitForSeconds(Mathf.Max(0f,(0.1f-i*0.015f)));
         }
         stars_selected.Clear();
-        CheckAllStarsPosition();
+        /*CheckAllStarsPosition();*/
+        //等待上下位置变动完成后，开始移动左右位置
+        float waitTime = CheckAllStarsColPosition();
+
+        yield return new WaitForSeconds(waitTime);
+
+        CheckAllStarsRowPosition();
+
+        //检查游戏是否结束
+        isOver = CheckIsGameOver();
+        if (isOver)
+        {
+            PlayBlinkStars();
+            Invoke("ResetGame", 3f);
+        }
+
     }
-
-    //检查所有位置是否合适
-    public void CheckAllStarsPosition()
+    //检查上下位置有无变动
+    public float CheckAllStarsColPosition()
     {
-
+        bool isHaveMove = false;
         //检查每一行可以移动的星星
         List<BlockStar> colStars = new List<BlockStar>();
         for (int i = 0; i < MAX_COL; i++)
@@ -142,15 +210,15 @@ public class StarsManage : MonoBehaviour {
             for (int j = MAX_ROW - 1; j >= 0; j--)
             {
                 if (stars_list[i, j] != null)
-                    colStars.Add(stars_list[i,j]);
+                    colStars.Add(stars_list[i, j]);
             }
-
             //将本列星星按照行从下到上设置位置，剩余位置设置为null
             for (int j = MAX_ROW - 1; j >= 0; j--)
             {
                 int index = MAX_ROW - 1 - j;
                 if (index < colStars.Count)
                 {
+                    if(colStars[index]._col != j) isHaveMove = true;
                     stars_list[i, j] = colStars[index];
                     colStars[index].SetPos(i, j);
                 }
@@ -160,6 +228,13 @@ public class StarsManage : MonoBehaviour {
                 }
             }
         }
+        //返回等待时间，如果上下位置有变化，返回等待时间
+        return isHaveMove ? 0.1f : 0f;
+    }
+
+    //检查左右位置有无变动
+    public void CheckAllStarsRowPosition()
+    {
         List<int> colNotNull = new List<int>();
         //检查每一列可以移动的星星,记录所有不为空的列
         for (int i = 0; i < MAX_ROW; i++)
@@ -173,7 +248,7 @@ public class StarsManage : MonoBehaviour {
                 }
             }
         }
-        //将所有列设置向左靠拢 有问题
+        //将所有列设置向左靠拢
         for (int i = 0; i < MAX_ROW; i++)
         {
             if (i < colNotNull.Count)
@@ -193,12 +268,69 @@ public class StarsManage : MonoBehaviour {
                     stars_list[i, j] = null;
             }
         }
+    }
+
+    //检查所有位置是否合适
+    public void CheckAllStarsPosition()
+    {
+        
+        
 
     }
 
     //检查游戏是否结束
     public bool CheckIsGameOver()
     {
-        return false;
+        if (stars_list[0, MAX_COL - 1] == null) return true;
+
+        for (int i = 0, imax = MAX_ROW; i < imax; i++)
+        {
+            for (int j = MAX_COL-1; j >0; j--)
+            {
+                if (stars_list[i, j] == null) break ;
+                if (stars_list[i,j-1] == null) break;
+                if (stars_list[i, j]._type == stars_list[i, j - 1]._type)
+                    return false;
+            }
+        }
+
+        for (int i = MAX_COL -1; i >0; i--)
+        {
+            for (int j = 0,jmax = MAX_ROW-1-1; j <jmax; j++)
+            {
+                if (stars_list[j, i] == null) break;
+                if (stars_list[j+1, i] == null) break;
+                if (stars_list[j,i]._type == stars_list[j+1,i]._type)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    //播放星星闪烁效果
+    public void PlayBlinkStars()
+    {
+        for (int i = 0; i < MAX_ROW; i++)
+        {
+            for (int j = 0; j < MAX_COL; j++)
+            {
+                if (stars_list[i, j] == null) continue;
+                stars_list[i, j].PlayBlinkEffect(true);
+            }
+        }
+
+        Invoke("StopBlinkStars", 1.5f);
+    }
+
+    public void StopBlinkStars()
+    {
+        for (int i = 0; i < MAX_ROW; i++)
+        {
+            for (int j = 0; j < MAX_COL; j++)
+            {
+                if (stars_list[i, j] == null) continue;
+                stars_list[i, j].PlayBlinkEffect(false);
+            }
+        }
     }
 }

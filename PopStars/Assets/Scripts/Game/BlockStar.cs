@@ -28,6 +28,9 @@ public class BlockStar : MonoBehaviour {
     //选中效果
     public GameObject _selected = null;
 
+    //是否死亡
+    public bool isDeath = false;
+
     //爆炸效果
     public GameObject effect_boom = null;
 
@@ -75,18 +78,19 @@ public class BlockStar : MonoBehaviour {
 
     void UpdatePosition()
     {
-        Vector3 pos = Vector3.zero;
+        Vector3 pos = Vector3.zero;         
         pos.x = starPos.x + _row * (_width + space) * 0.01f;
         pos.y = starPos.y - _col * (_height + space) * 0.01f;
         pos.z = 10f;
         //transform.localPosition = pos;
-        iTween.MoveTo(gameObject, pos, 0.5f);
+        iTween.MoveTo(gameObject, pos, 0.3f);
     }
 
     public void OnMouseUp()
     {
         if (Input.GetMouseButtonUp(0))
         {
+            if (isDeath) return;
             if (isSelect)
             {
                 StarsManage.instance.DestroyAllSelectStars();
@@ -101,11 +105,26 @@ public class BlockStar : MonoBehaviour {
     //销毁自己
     public void DestoryBoom()
     {
+        isDeath = true;
         Debug.Log(string.Format("销毁 row {0},col {1},type {2}", _row, _col, _type));
         isSelect = false;
         _sprite.gameObject.SetActive(false);
-        effect_boom.SetActive(true);
+        PlayBoomEffect(true);
         GameObject.Destroy(gameObject, 1f);
     }
 
+
+    //播放爆炸效果
+    public void PlayBoomEffect(bool isPlay)
+    {
+        effect_boom.SetActive(isPlay);
+    }
+    //播放闪烁效果
+    public void PlayBlinkEffect(bool isPlay)
+    {
+        if (isPlay)
+            iTween.ColorTo(_sprite.gameObject, iTween.Hash(iT.ColorTo.a, 0, iT.ColorTo.time, 0.1f, iT.ColorTo.looptype, iTween.LoopType.pingPong));
+        else
+            _sprite.color = Color.white;
+    }
 }
