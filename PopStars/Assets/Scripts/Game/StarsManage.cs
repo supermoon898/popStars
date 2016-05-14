@@ -5,6 +5,8 @@ public class StarsManage : MonoBehaviour {
 
     public static StarsManage instance = null;
 
+    GameData game_data = new GameData();
+
     public GameObject[] starPrefabs;
 
     public const int MAX_ROW = 10;
@@ -15,6 +17,8 @@ public class StarsManage : MonoBehaviour {
 
     //所有星星
     BlockStar[,] stars_list = new BlockStar[MAX_ROW, MAX_COL];
+
+    public UIScore ui_score = null;
 
 	// Use this for initialization
 	void Start () {
@@ -71,9 +75,11 @@ public class StarsManage : MonoBehaviour {
             }
         }
         stars_selected.Clear();
-
+        game_data.Reset();
+        //ui_score.UpdateScore(game_data.score);
         InitStars();
-        StartCoroutine("FallAllStars");
+        /*FallAllStars();*/
+        StartCoroutine("FallAllStarsCoroutine");
     }
 
     BlockStar CreateStars(BlockStar.StarType type, int row, int col)
@@ -106,13 +112,14 @@ public class StarsManage : MonoBehaviour {
         return st;
     }
 
-    //设置所有相邻的相同星星为选中状态
-    public void CheckStars(int row, int col, BlockStar.StarType type)
+    //设置所有相邻的相同星星为选中状态,返回选中的星星个数
+    public int CheckStars(int row, int col, BlockStar.StarType type)
     {
         ClearAllStarsSearchState();
         ClearAllSelectedStars();
         CheckSameStars(row,col,type);
         SetAllSelectStarsState();
+        return stars_selected.Count;
     }
 
     //查找临近的所有相同的星星,递归遍历
@@ -348,18 +355,37 @@ public class StarsManage : MonoBehaviour {
     }
 
     //初始化游戏时候的星星下落动画
-    IEnumerator FallAllStars()
+    IEnumerator FallAllStarsCoroutine()
     {
         for (int i = MAX_COL - 1; i >= 0; i--)
         {
             for (int j = 0; j < MAX_ROW; j++)
             {
                 stars_list[j, i].FallStar();
-                float RowdealyTime = 0f /*Random.Range(0.0f, 0.05f)*/;
+                float RowdealyTime = 0f/*Random.Range(0.0f, 0.05f)*/;
                 yield return new WaitForSeconds(RowdealyTime);
             }
-            float ColdealyTime = 0f/*Random.Range(0.05f, 01f)*/;
+            float ColdealyTime = 0f/*Random.Range(0.00f, 0.05f)*/;
             yield return new WaitForSeconds(ColdealyTime);
         }
     }
+
+    void FallAllStars()
+    {
+        for (int i = MAX_COL - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < MAX_ROW; j++)
+            {
+                stars_list[j, i].FallStar();
+            }
+        }
+    }
+
+    //根据选中的星星个数获取分数
+    public int GetScore(int stars)
+    {
+        return stars * stars * 5;
+    }
+
+
 }

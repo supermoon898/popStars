@@ -17,7 +17,7 @@ public class BlockStar : MonoBehaviour {
     const float space = 4f;
 
     public static iTween.EaseType easyType = iTween.EaseType.easeInQuad;
-    public static float easySpeed = 10f;
+    public static float easySpeed = 50f;
     //星星类型
     public StarType _type;
 
@@ -123,7 +123,8 @@ public class BlockStar : MonoBehaviour {
                 return;
             }
             isSelect = !isSelect;
-            StarsManage.instance.CheckStars(_row, _col, _type);
+            int sel_count = StarsManage.instance.CheckStars(_row, _col, _type);
+            //StarsManage.instance.ui_score.UpdateScoreTip(sel_count);
             Debug.Log("isSelect is " + isSelect);
         }
     }
