@@ -44,6 +44,17 @@ public class StarsManage : MonoBehaviour {
             GUILayout.TextArea("Game is OVer");
         else
             GUILayout.TextArea("Game is not OVer");
+
+        if (GUILayout.Button(BlockStar.easyType.ToString()))
+        {
+            int count = System.Enum.GetValues(typeof(iTween.EaseType)).Length;
+            int index = (int)BlockStar.easyType;
+            index = (index + 1) % count;
+            Debug.Log("count : " + count + " EasyType : index" + index);
+            BlockStar.easyType = (iTween.EaseType)index;
+        }
+        GUILayout.TextArea("EasySpeed");
+        BlockStar.easySpeed = GUILayout.HorizontalSlider(BlockStar.easySpeed, 0f, 100f);
     }
 
     public void ResetGame()
@@ -62,6 +73,7 @@ public class StarsManage : MonoBehaviour {
         stars_selected.Clear();
 
         InitStars();
+        StartCoroutine("FallAllStars");
     }
 
     BlockStar CreateStars(BlockStar.StarType type, int row, int col)
@@ -71,7 +83,8 @@ public class StarsManage : MonoBehaviour {
         obj.SetActive(true);
         BlockStar bs = obj.GetComponent<BlockStar>();
         bs.Init();
-        bs.SetPos(row, col);
+        /*bs.SetPos(row, col);*/
+        bs.InitPos(row, col);
         return bs;
     }
 
@@ -331,6 +344,22 @@ public class StarsManage : MonoBehaviour {
                 if (stars_list[i, j] == null) continue;
                 stars_list[i, j].PlayBlinkEffect(false);
             }
+        }
+    }
+
+    //初始化游戏时候的星星下落动画
+    IEnumerator FallAllStars()
+    {
+        for (int i = MAX_COL - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < MAX_ROW; j++)
+            {
+                stars_list[j, i].FallStar();
+                float RowdealyTime = 0f /*Random.Range(0.0f, 0.05f)*/;
+                yield return new WaitForSeconds(RowdealyTime);
+            }
+            float ColdealyTime = 0f/*Random.Range(0.05f, 01f)*/;
+            yield return new WaitForSeconds(ColdealyTime);
         }
     }
 }

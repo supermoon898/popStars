@@ -11,11 +11,13 @@ public class BlockStar : MonoBehaviour {
         Star_Purple,
         Star_Red,
     }
-
+    Vector2 initPos = new Vector2(-3.08f, 10f);
     Vector2 starPos = new Vector2(-3.08f, 1.94f);
 
     const float space = 4f;
 
+    public static iTween.EaseType easyType = iTween.EaseType.easeInQuad;
+    public static float easySpeed = 10f;
     //星星类型
     public StarType _type;
 
@@ -69,6 +71,19 @@ public class BlockStar : MonoBehaviour {
         isSelect = false;
     }
 
+    //初始化开始位置
+    public void InitPos(int row,int col)
+    {
+        _row = row;
+        _col = col;
+        Vector3 pos = Vector3.zero;
+        pos.x = initPos.x + _row * (_width + space) * 0.01f;
+        pos.y = initPos.y - _col * (_height + space) * 0.01f;
+        pos.z = 10f;
+        transform.localPosition = pos;
+    }
+
+    //设置位置，在游戏中使用，位置变换
     public void SetPos(int row, int col)
     {
         _row = row;
@@ -84,6 +99,17 @@ public class BlockStar : MonoBehaviour {
         pos.z = 10f;
         //transform.localPosition = pos;
         iTween.MoveTo(gameObject, pos, 0.3f);
+    }
+
+    public void FallStar()
+    {
+        Vector3 pos = Vector3.zero;
+        pos.x = starPos.x + _row * (_width + space) * 0.01f;
+        pos.y = starPos.y - _col * (_height + space) * 0.01f;
+        pos.z = 10f;
+        //transform.localPosition = pos;
+        float delayTime = Random.Range(0.01f, 0.07f);
+        iTween.MoveTo(gameObject, iTween.Hash(iT.MoveTo.position, pos, iT.MoveTo.speed, easySpeed, iT.MoveTo.easetype, easyType,iT.MoveTo.delay,delayTime));
     }
 
     public void OnMouseUp()
