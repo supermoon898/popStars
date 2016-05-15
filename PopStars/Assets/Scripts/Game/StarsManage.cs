@@ -76,7 +76,7 @@ public class StarsManage : MonoBehaviour {
         }
         stars_selected.Clear();
         game_data.Reset();
-        //ui_score.UpdateScore(game_data.score);
+        ui_score.UpdateScore(game_data.score);
         InitStars();
         /*FallAllStars();*/
         StartCoroutine("FallAllStarsCoroutine");

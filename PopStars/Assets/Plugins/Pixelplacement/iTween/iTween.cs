@@ -37,6 +37,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 #endregion
 
 /// <summary>
@@ -699,16 +700,24 @@ public class iTween : MonoBehaviour{
 		}
 		
 		//set tempColor and base fromColor:
-		if(target.GetComponent<GUITexture>()){
-			tempColor=fromColor=target.GetComponent<GUITexture>().color;	
-		}else if(target.GetComponent<GUIText>()){
-			tempColor=fromColor=target.GetComponent<GUIText>().material.color;
-		}else if(target.GetComponent<Renderer>()){
-			tempColor=fromColor=target.GetComponent<Renderer>().material.color;
-		}else if(target.GetComponent<Light>()){
-			tempColor=fromColor=target.GetComponent<Light>().color;
-		}
-		
+        if (target.GetComponent<GUITexture>())
+        {
+            tempColor = fromColor = target.GetComponent<GUITexture>().color;
+        }
+        else if (target.GetComponent<GUIText>())
+        {
+            tempColor = fromColor = target.GetComponent<GUIText>().material.color;
+        }
+        else if (target.GetComponent<Renderer>())
+        {
+            tempColor = fromColor = target.GetComponent<Renderer>().material.color;
+        }
+        else if (target.GetComponent<Light>())
+        {
+            tempColor = fromColor = target.GetComponent<Light>().color;
+        }
+        else if (target.GetComponent<Text>())
+            tempColor = fromColor = target.GetComponent<Text>().color;
 		//set augmented fromColor:
 		if(args.Contains("color")){
 			fromColor=(Color)args["color"];
@@ -737,15 +746,24 @@ public class iTween : MonoBehaviour{
 		}
 		
 		//apply fromColor:
-		if(target.GetComponent<GUITexture>()){
-			target.GetComponent<GUITexture>().color=fromColor;	
-		}else if(target.GetComponent<GUIText>()){
-			target.GetComponent<GUIText>().material.color=fromColor;
-		}else if(target.GetComponent<Renderer>()){
-			target.GetComponent<Renderer>().material.color=fromColor;
-		}else if(target.GetComponent<Light>()){
-			target.GetComponent<Light>().color=fromColor;
-		}
+        if (target.GetComponent<GUITexture>())
+        {
+            target.GetComponent<GUITexture>().color = fromColor;
+        }
+        else if (target.GetComponent<GUIText>())
+        {
+            target.GetComponent<GUIText>().material.color = fromColor;
+        }
+        else if (target.GetComponent<Renderer>())
+        {
+            target.GetComponent<Renderer>().material.color = fromColor;
+        }
+        else if (target.GetComponent<Light>())
+        {
+            target.GetComponent<Light>().color = fromColor;
+        }
+        else if (target.GetComponent<Text>())
+            target.GetComponent<Text>().color = fromColor;
 		
 		//set new color arg:
 		args["color"]=tempColor;
@@ -3339,12 +3357,21 @@ public class iTween : MonoBehaviour{
 				colors[i,1]=GetComponent<Renderer>().materials[i].GetColor(namedcolorvalue.ToString());
 			}
 			//colors[0] = colors[1] = renderer.material.color;	
-		}else if(GetComponent<Light>()){
-			colors = new Color[1,3];
-			colors[0,0] = colors[0,1] = GetComponent<Light>().color;	
-		}else{
-			colors = new Color[1,3]; //empty placeholder incase the GO is perhaps an empty holder or something similar
-		}
+        }
+        else if (GetComponent<Text>())
+        {
+            colors = new Color[1, 3];
+            colors[0, 0] = colors[0, 1] = GetComponent<Text>().color;
+        }
+        else if (GetComponent<Light>())
+        {
+            colors = new Color[1, 3];
+            colors[0, 0] = colors[0, 1] = GetComponent<Light>().color;
+        }
+        else
+        {
+            colors = new Color[1, 3]; //empty placeholder incase the GO is perhaps an empty holder or something similar
+        }
 		
 		//to values:
 		if (tweenArguments.Contains("color")) {
