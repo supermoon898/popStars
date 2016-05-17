@@ -119,6 +119,8 @@ public class BlockStar : MonoBehaviour {
             if (isDeath) return;
             if (isSelect)
             {
+                GameData.score += StarsManage.instance.GetSelectScore();
+                StarsManage.instance.ui_score.UpdateScore(GameData.score);
                 StarsManage.instance.DestroyAllSelectStars();
                 return;
             }
@@ -140,6 +142,12 @@ public class BlockStar : MonoBehaviour {
         GameObject.Destroy(gameObject, 1f);
     }
 
+    //播放选中的效果
+    public void PlaySelectTween()
+    {
+        Vector3 pos = cacheTransform.localPosition;
+        iTween.PunchPosition(gameObject,Vector3.up * 0.08f,0.9f);
+    }
 
     //播放爆炸效果
     public void PlayBoomEffect(bool isPlay)

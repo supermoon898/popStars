@@ -3,10 +3,10 @@ using System.Collections;
 
 public class GameData {
 
-    public int score;
-    public int high_score;
+    public static int score;
+    public static int high_score;
 
-    public void Reset()
+    public static void Reset()
     {
         score = 0;
         high_score = 0;

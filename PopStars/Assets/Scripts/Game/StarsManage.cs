@@ -5,8 +5,6 @@ public class StarsManage : MonoBehaviour {
 
     public static StarsManage instance = null;
 
-    GameData game_data = new GameData();
-
     public GameObject[] starPrefabs;
 
     public const int MAX_ROW = 10;
@@ -75,8 +73,8 @@ public class StarsManage : MonoBehaviour {
             }
         }
         stars_selected.Clear();
-        game_data.Reset();
-        ui_score.UpdateScore(game_data.score);
+        GameData.Reset();
+        ui_score.UpdateScore(GameData.score);
         InitStars();
         /*FallAllStars();*/
         StartCoroutine("FallAllStarsCoroutine");
@@ -119,6 +117,7 @@ public class StarsManage : MonoBehaviour {
         ClearAllSelectedStars();
         CheckSameStars(row,col,type);
         SetAllSelectStarsState();
+        PlaySelectEffect();
         return stars_selected.Count;
     }
 
@@ -195,6 +194,7 @@ public class StarsManage : MonoBehaviour {
             int row = bs._row;
             int col = bs._col;
             stars_list[row, col] = null;
+            FlyTween.instance.FlyText("" + (5 + i * 10), bs.gameObject, StarsManage.instance.ui_score.txt_score.gameObject, 5f);
             bs.DestoryBoom();
             if(i != imax -1)
                 yield return new WaitForSeconds(Mathf.Max(0f,(0.1f-i*0.015f)));
@@ -370,6 +370,16 @@ public class StarsManage : MonoBehaviour {
         }
     }
 
+    void PlaySelectEffect()
+    {
+        for (int i = 0, imax = stars_selected.Count; i < imax; i++)
+        {
+            BlockStar bs = stars_selected[i];
+            if (bs != null)
+                bs.PlaySelectTween();
+        }
+    }
+
     void FallAllStars()
     {
         for (int i = MAX_COL - 1; i >= 0; i--)
@@ -387,5 +397,10 @@ public class StarsManage : MonoBehaviour {
         return stars * stars * 5;
     }
 
-
+    //获取选中的分数
+    public int GetSelectScore()
+    {
+        int sle_cout = stars_selected.Count;
+        return GetScore(sle_cout);
+    }
 }
